@@ -1037,8 +1037,8 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') == 'development'
     
-    logger.info(f"🌞 Starting AI Solar Analysis System on port {port}")
-    logger.info(f"🤖 AI Vision: {'Enabled' if OPENROUTER_API_KEY not in ['your_api_key_here', 'demo_mode', None] else 'Demo Mode'}")
-    logger.info(f"🔧 Debug mode: {debug}")
+    logger.info(f" Starting AI Solar Analysis System on port {port}")
+    logger.info(f" AI Vision: {'Enabled' if OPENROUTER_API_KEY not in ['your_api_key_here', 'demo_mode', None] else 'Demo Mode'}")
+    logger.info(f" Debug mode: {debug}")
     
     app.run(host='0.0.0.0', port=port, debug=debug, load_dotenv=False)
