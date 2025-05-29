@@ -752,7 +752,7 @@ HTML_TEMPLATE = """
             
             <button class="analyze-btn" onclick="analyzeRooftop()">🔍 Analyze Solar Potential</button>
             <footer class="app-footer">
-            <p>© <span id="currentYear"></span> Wattmonk Technologies Private Limited  , Made by sambhranta 🩵</p>
+            <p>© <span id="currentYear"></span>  Made by sambhranta 🩵</p>
         </footer>
             <div id="results"></div>
         </div>

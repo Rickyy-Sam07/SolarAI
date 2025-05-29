@@ -1,0 +1,405 @@
+
+
+## **1. Roof Area Calculations**
+
+### **Area Conversion Formula**
+```
+usable_area_m² = roof_area_sqft × 0.092903
+```
+
+**Purpose:** Converts square feet to square meters for international calculations.
+
+**Detailed Explanation:**
+- **0.092903** is the exact conversion factor from square feet to square meters
+- Solar industry calculations are typically done in metric units (m²)
+- Example: 2,000 sq ft × 0.092903 = 185.8 m²
+- This standardizes measurements for global solar panel specifications
+
+### **Roof Percentage Analysis**
+```
+roof_percentage = roof_pixels ÷ total_pixels
+```
+
+**Purpose:** Determines what portion of the satellite image contains the roof.
+
+**Detailed Explanation:**
+- **roof_pixels:** Number of pixels identified as roof area by computer vision
+- **total_pixels:** Total pixels in the entire image (width × height)
+- Result is a decimal between 0 and 1 (e.g., 0.4 = 40% of image is roof)
+- Used to estimate actual roof size based on image analysis
+- Higher percentages indicate larger roofs or closer satellite images
+
+### **Usable Area After Obstacles**
+```
+usable_area = detected_area × 0.75
+```
+
+**Purpose:** Accounts for unusable roof space due to obstacles and structural limitations.
+
+**Detailed Explanation:**
+- **0.75 factor** represents 75% usability after removing obstacles
+- Accounts for: chimneys, vents, HVAC units, roof edges, fire setbacks
+- Industry standard: 20-30% of roof area is typically unusable
+- Conservative estimate ensures realistic panel placement
+- Example: 2,000 sq ft roof → 1,500 sq ft usable area
+
+## **2. Solar Panel System Sizing**
+
+### **Maximum Panel Count**
+```
+max_panels = ⌊(usable_area_m² ÷ panel_area) × packing_efficiency⌋
+```
+
+**Purpose:** Calculates maximum number of panels that can fit on the roof.
+
+**Detailed Explanation:**
+- **panel_area = 2.0 m²:** Standard residential solar panel size (2m × 1m)
+- **packing_efficiency = 0.85:** 85% efficiency accounts for spacing, wiring, access
+- **⌊⌋ (floor function):** Rounds down to whole panels (can't install partial panels)
+- **15% loss** due to: panel spacing, inverter placement, walkways, irregular roof shapes
+- Example: 100 m² ÷ 2.0 × 0.85 = 42.5 → 42 panels maximum
+
+### **Panel Wattage**
+```
+panel_wattage = panel_efficiency × 1000 × panel_area
+```
+
+**Purpose:** Calculates the power output of each individual panel.
+
+**Detailed Explanation:**
+- **panel_efficiency:** Decimal efficiency (0.24 = 24% for monocrystalline)
+- **1000:** Converts to watts (1000 W/m² standard test conditions)
+- **panel_area:** Physical panel size in square meters
+- Standard test conditions: 1000 W/m² irradiance, 25°C, AM 1.5 spectrum
+- Example: 0.24 × 1000 × 2.0 = 480 watts per panel
+
+### **System Capacity**
+```
+system_capacity_kW = (max_panels × panel_wattage) ÷ 1000
+```
+
+**Purpose:** Determines total system power capacity in kilowatts.
+
+**Detailed Explanation:**
+- **max_panels:** Number of panels that fit on roof
+- **panel_wattage:** Individual panel power output
+- **÷ 1000:** Converts watts to kilowatts for standard industry measurement
+- This is the "nameplate capacity" used for permits and utility interconnection
+- Example: 42 panels × 480W ÷ 1000 = 20.16 kW system
+
+## **3. Energy Production Calculations**
+
+### **Base Annual Production**
+```
+annual_irradiance = location_irradiance × 365
+base_production = system_capacity × annual_irradiance
+```
+
+**Purpose:** Calculates theoretical annual energy production without losses.
+
+**Detailed Explanation:**
+- **location_irradiance:** Daily solar energy per m² for specific location (kWh/m²/day)
+- **365:** Days per year
+- **base_production:** Theoretical maximum energy if panels operated at peak efficiency
+- Does not account for real-world losses (shading, temperature, inverter efficiency)
+- Example: 5.26 kWh/m²/day × 365 = 1,920 kWh/m²/year
+
+### **Comprehensive Energy Production**
+```
+annual_production = base_production × shading_factor × orientation_factor × tilt_factor × temperature_factor
+```
+
+**Purpose:** Applies real-world efficiency losses to get accurate production estimate.
+
+**Detailed Explanation:**
+- **base_production:** Theoretical maximum from previous calculation
+- **Multiple factors** account for different types of energy losses
+- Each factor is a decimal ≤ 1.0 (representing percentage efficiency)
+- Factors are multiplied together for cumulative effect
+- Result is realistic annual energy production in kWh
+
+### **Efficiency Factors**
+
+#### **Shading Factor**
+```
+shading_factor = (100 - shading_percentage) ÷ 100
+```
+
+**Purpose:** Reduces production based on roof shading from trees, buildings, or obstacles.
+
+**Detailed Explanation:**
+- **shading_percentage:** Percentage of roof affected by shadows (0-100)
+- **Conversion to factor:** 20% shading → 0.8 factor (80% efficiency)
+- Shading has disproportionate impact due to series wiring of panels
+- Even partial shading can significantly reduce system output
+- Example: 15% shading → (100-15)÷100 = 0.85 factor
+
+#### **Orientation Factors**
+- **South: 1.0** (optimal in Northern Hemisphere)
+- **Southeast/Southwest: 0.96** (4% loss from optimal)
+- **East/West: 0.87** (13% loss)
+- **Northeast/Northwest: 0.78** (22% loss)
+- **North: 0.65** (35% loss - generally not recommended)
+
+**Purpose:** Adjusts production based on roof orientation relative to sun path.
+
+**Detailed Explanation:**
+- Based on solar geometry and sun path throughout the year
+- South-facing receives most direct sunlight in Northern Hemisphere
+- East/West split daily solar exposure (morning vs. afternoon)
+- North-facing receives minimal direct sunlight
+- Factors derived from solar modeling software and industry standards
+
+#### **Tilt Factor**
+```
+deviation = |tilt_angle - 30°|
+If deviation ≤ 5°: factor = 1.0
+If deviation ≤ 15°: factor = 0.95
+If deviation ≤ 25°: factor = 0.90
+Else: factor = 0.85
+```
+
+**Purpose:** Optimizes production based on panel tilt angle.
+
+**Detailed Explanation:**
+- **30°** is approximately optimal tilt for most US locations
+- **|absolute value|** ensures positive deviation regardless of direction
+- Flatter or steeper angles reduce efficiency
+- **Stepped function** provides practical ranges rather than complex curves
+- Accounts for seasonal sun angle variations
+
+#### **Temperature Factor**
+```
+If avg_temp > 25°C:
+    temperature_factor = 1 - ((avg_temp - 25) × 0.004)
+Else:
+    temperature_factor = 1.0
+```
+
+**Purpose:** Accounts for reduced panel efficiency in high temperatures.
+
+**Detailed Explanation:**
+- **25°C (77°F):** Standard test condition temperature
+- **0.004 (0.4%):** Typical efficiency loss per degree Celsius above 25°C
+- Solar panels lose efficiency as temperature increases
+- Hot climates see significant production losses despite high sun exposure
+- Example: 35°C average → 1 - ((35-25) × 0.004) = 0.96 factor
+
+### **Capacity Factor**
+```
+capacity_factor = (annual_production ÷ (system_capacity × 8760)) × 100
+```
+
+**Purpose:** Measures system efficiency as percentage of theoretical maximum.
+
+**Detailed Explanation:**
+- **8760:** Hours in a year (24 × 365)
+- **system_capacity × 8760:** Theoretical production if system ran at full capacity 24/7
+- **Capacity factor:** Industry standard efficiency metric (typically 15-25% for solar)
+- Higher values indicate better system performance or location
+- Example: 20,000 kWh ÷ (10 kW × 8760) = 22.8% capacity factor
+
+## **4. Financial Analysis Formulas**
+
+### **System Costs**
+```
+equipment_cost = system_capacity × 1000 × cost_per_watt
+installation_cost = equipment_cost × 0.35
+permitting_cost = $750
+gross_cost = equipment_cost + installation_cost + permitting_cost
+```
+
+**Purpose:** Calculates total system installation cost before incentives.
+
+**Detailed Explanation:**
+- **cost_per_watt:** Panel-specific cost (varies by technology)
+- **× 1000:** Converts kW to watts for cost calculation
+- **installation_cost (35%):** Labor, mounting, electrical, inverters
+- **permitting_cost:** Fixed cost for permits, inspections, utility interconnection
+- **gross_cost:** Total project cost before any rebates or tax credits
+
+### **Incentives**
+```
+federal_tax_credit = gross_cost × 0.30
+net_cost = gross_cost - federal_tax_credit
+```
+
+**Purpose:** Applies federal solar tax credit to reduce customer cost.
+
+**Detailed Explanation:**
+- **30%:** Federal Investment Tax Credit (ITC) rate as of 2025
+- **Tax credit:** Dollar-for-dollar reduction in federal taxes owed
+- **net_cost:** Actual customer cost after federal incentive
+- Does not include state/local incentives (varies by location)
+- Credit applies to total system cost including installation
+
+### **Financial Metrics**
+```
+annual_savings = annual_production × electricity_rate
+simple_payback = net_cost ÷ annual_savings
+cost_per_watt = net_cost ÷ (system_capacity × 1000)
+```
+
+**Purpose:** Calculates key financial performance indicators.
+
+**Detailed Explanation:**
+- **annual_savings:** Yearly electricity bill reduction
+- **simple_payback:** Years to recover investment (ignores time value of money)
+- **cost_per_watt:** Industry standard cost comparison metric
+- Simple payback doesn't account for electricity rate increases or system degradation
+- Lower cost per watt indicates better value
+
+### **25-Year Lifetime Savings**
+```
+For year = 1 to 25:
+    total_savings += current_savings
+    current_savings = current_savings × (1 - degradation_rate) × (1 + rate_increase)
+```
+
+**Purpose:** Projects total savings over system lifetime with realistic adjustments.
+
+**Detailed Explanation:**
+- **25 years:** Typical solar panel warranty period
+- **degradation_rate:** Annual efficiency loss (0.3-0.7% depending on panel type)
+- **rate_increase = 2.5%:** Historical average electricity rate inflation
+- **Compound effects:** Both degradation and rate increases compound annually
+- More accurate than simple payback for long-term analysis
+
+### **Return on Investment**
+```
+net_benefit = lifetime_savings - net_cost
+ROI_percentage = (net_benefit ÷ net_cost) × 100
+```
+
+**Purpose:** Calculates total return as percentage of initial investment.
+
+**Detailed Explanation:**
+- **net_benefit:** Total profit over system lifetime
+- **ROI_percentage:** Standard investment return metric
+- Positive ROI indicates profitable investment
+- Typical solar ROI ranges from 100-300% over 25 years
+- Example: $50,000 net benefit ÷ $20,000 net cost = 250% ROI
+
+## **5. Environmental Impact Formulas**
+
+### **CO₂ Offset**
+```
+annual_CO₂_offset = (annual_kWh × 0.4) ÷ 1000
+lifetime_CO₂_offset = annual_CO₂_offset × 25
+```
+
+**Purpose:** Calculates carbon dioxide emissions avoided by solar production.
+
+**Detailed Explanation:**
+- **0.4 kg CO₂/kWh:** US average grid emission factor
+- **÷ 1000:** Converts kg to metric tons
+- **Grid emission factor:** Varies by region based on energy mix (coal vs. natural gas vs. renewables)
+- **25 years:** System lifetime for environmental impact calculation
+- Represents emissions avoided by displacing grid electricity
+
+### **Environmental Equivalents**
+```
+trees_equivalent = annual_CO₂_offset × 45.9
+cars_equivalent = annual_CO₂_offset ÷ 4.6
+coal_avoided = annual_CO₂_offset × 0.5
+```
+
+**Purpose:** Converts CO₂ savings into relatable environmental comparisons.
+
+**Detailed Explanation:**
+- **45.9 trees/ton CO₂:** Average CO₂ absorption by mature trees per year
+- **4.6 tons CO₂/car:** Average annual emissions from passenger vehicle
+- **0.5 tons coal/ton CO₂:** Approximate coal consumption to produce equivalent CO₂
+- These factors help communicate environmental benefits to non-technical audiences
+- Based on EPA and forestry service data
+
+## **6. Computer Vision Analysis**
+
+### **Image Quality Assessment**
+```
+blur_score = Laplacian_variance(grayscale_image)
+contrast = standard_deviation(grayscale_image)
+resolution_score = image_height × image_width
+```
+
+**Purpose:** Evaluates satellite image quality for accurate analysis.
+
+**Detailed Explanation:**
+- **Laplacian_variance:** Measures image sharpness (higher = sharper)
+- **Standard_deviation:** Measures contrast range (higher = better contrast)
+- **Resolution_score:** Total pixel count (higher = more detail)
+- Quality thresholds determine analysis confidence level
+- Poor quality images trigger fallback calculations
+
+### **Shading Analysis**
+```
+dark_pixels = sum(histogram[0:80])
+medium_dark_pixels = sum(histogram[80:120])
+total_pixels = image_height × image_width
+
+dark_percentage = (dark_pixels ÷ total_pixels) × 100
+medium_dark_percentage = (medium_dark_pixels ÷ total_pixels) × 100
+total_shading = dark_percentage + (medium_dark_percentage × 0.5)
+```
+
+**Purpose:** Quantifies shading on roof from image pixel intensity analysis.
+
+**Detailed Explanation:**
+- **Histogram[0:80]:** Very dark pixels (0-80 on 0-255 scale) indicating shadows
+- **Histogram[80:120]:** Medium dark pixels indicating partial shading
+- **Pixel intensity:** 0 = black, 255 = white
+- **0.5 weight:** Medium dark pixels contribute half the shading impact
+- **total_shading:** Combined shading factor used in energy calculations
+
+### **Roof Area Estimation**
+```
+roof_pixels = contour_area(largest_contour)
+roof_percentage = roof_pixels ÷ total_pixels
+
+Area estimation based on roof_percentage:
+- If > 0.7: 2500-4500 sq ft
+- If > 0.4: 1500-2800 sq ft  
+- If > 0.2: 800-1800 sq ft
+- Else: 400-1200 sq ft
+```
+
+**Purpose:** Estimates actual roof size from computer vision analysis.
+
+**Detailed Explanation:**
+- **contour_area:** OpenCV function measuring pixels within roof boundary
+- **largest_contour:** Assumes main roof is the largest detected shape
+- **Percentage ranges:** Empirically derived from training data
+- **Area ranges:** Account for different satellite image scales and zoom levels
+- **Random within range:** Adds variability to simulate real-world measurement uncertainty
+
+## **7. Panel Specifications**
+
+**Purpose:** Database of solar panel technologies with performance characteristics.
+
+**Detailed Explanation:**
+- **Efficiency:** Percentage of sunlight converted to electricity under standard test conditions
+- **Cost/Watt:** Current market price per watt of panel capacity
+- **Degradation:** Annual efficiency loss rate over system lifetime
+- **Temperature Coefficient:** Efficiency loss per degree above 25°C
+
+**Technology Comparison:**
+- **Monocrystalline:** Most efficient, moderate cost, good longevity
+- **Polycrystalline:** Lower efficiency, lowest cost, higher degradation
+- **HJT (Heterojunction):** Highest efficiency, premium cost, lowest degradation
+- **TOPcon:** High efficiency, moderate premium, good temperature performance
+
+## **8. Regional Solar Data**
+
+**Purpose:** Location-specific solar irradiance values for energy production calculations.
+
+**Detailed Explanation:**
+- **kWh/m²/day:** Daily solar energy available per square meter
+- **Values based on:** NREL (National Renewable Energy Laboratory) solar resource data
+- **Accounts for:** Latitude, climate patterns, seasonal variations, atmospheric conditions
+- **Arizona (6.57):** Highest solar resource due to desert climate and low latitude
+- **New York (3.79):** Lower resource due to higher latitude and cloudier climate
+- **Default (4.5):** Conservative estimate for unknown locations
+
+These formulas work together to provide comprehensive solar analysis, from basic computer vision measurements through complex financial modeling, ensuring accurate and reliable solar potential assessments for any property.
+
+---
