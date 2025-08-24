@@ -3,7 +3,7 @@ AI Solar Rooftop Analyzer
 An advanced web application that uses artificial intelligence and computer vision to analyze rooftops from satellite imagery, providing comprehensive solar installation assessments including system sizing, financial analysis, and environmental impact calculations.
 
 🚀 Live Demo
-Try it now: https://web-production-7ed9d.up.railway.app/
+Try it now: https://solarai-1.onrender.com/
 
 ✨ Features
 🔍 AI-Powered Analysis
